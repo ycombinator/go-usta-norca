@@ -6,19 +6,22 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
 )
 
 type OrganizationDetails struct {
-	Name string `json:"name"`
+	Name string
 }
 
 type OrganizationTeam struct {
-	Status    string    `json:"status"`
-	Name      string    `json:"name"`
-	Area      string    `json:"area"`
-	Captain   string    `json:"captain"`
-	StartDate time.Time `json:"start_date"`
+	Status    string
+	Name      string
+	ID        int
+	Area      string
+	Captain   string
+	StartDate time.Time
 }
 
 const organizationURL = "/organization.asp?id=%d"
@@ -68,6 +71,17 @@ func GetOrganizationTeams(id int) ([]OrganizationTeam, error) {
 		cells = cells.Next()
 		name := cells.First().Text()
 
+		u := cells.First().Get(0).FirstChild.Attr[0].Val
+		up, err := url.Parse(u)
+		if err != nil {
+			return
+		}
+		idStr := up.Query().Get("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			return
+		}
+
 		cells = cells.Next()
 		area := cells.First().Text()
 
@@ -77,7 +91,7 @@ func GetOrganizationTeams(id int) ([]OrganizationTeam, error) {
 		cells = cells.Next()
 		cells = cells.Next()
 		startDateStr := cells.First().Text()
-		startDate, err := time.Parse("01/02/2006", startDateStr)
+		startDate, err := time.ParseInLocation("01/02/2006", startDateStr, time.Local)
 		if err != nil {
 			return
 		}
@@ -85,6 +99,7 @@ func GetOrganizationTeams(id int) ([]OrganizationTeam, error) {
 		orgTeam := OrganizationTeam{
 			Status:    status,
 			Name:      name,
+			ID:        id,
 			Area:      area,
 			Captain:   captain,
 			StartDate: startDate,
