@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 const baseUrl = "https://leagues.ustanorcal.com"
@@ -41,4 +42,8 @@ func parseIDFromUrl(u string) (int, error) {
 	}
 
 	return id, nil
+}
+
+func replaceNbsp(htmlText string) string {
+	return strings.ReplaceAll(htmlText, "\u00a0", " ")
 }

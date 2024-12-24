@@ -6,6 +6,23 @@ import (
 	"time"
 )
 
+func TestGetTeamMatches(t *testing.T) {
+	teamMatches, err := GetTeamMatches(104288)
+	require.NoError(t, err)
+	require.Len(t, teamMatches, 10)
+
+	firstMatch := teamMatches[0]
+	expectedMatch := TeamMatch{
+		Week:         1,
+		Date:         time.Date(2025, 1, 8, 18, 30, 0, 0, time.Local),
+		OpponentName: "SILVER CREEK 40AM4.0A",
+		OpponentID:   104945,
+		Location:     "Home",
+		IsScheduled:  true,
+	}
+	require.Equal(t, expectedMatch, firstMatch)
+}
+
 func TestParseWeek(t *testing.T) {
 	cases := map[string]int{
 		" 3 (1/20-1/26) ": 3,

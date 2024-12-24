@@ -3,7 +3,6 @@ package pkg
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"html"
 	"regexp"
 	"strconv"
 	"strings"
@@ -40,7 +39,7 @@ func GetTeamMatches(id int) ([]TeamMatch, error) {
 	headerSeen := false
 	sel.Each(func(i int, row *goquery.Selection) {
 		cells := row.Children()
-		if cells.Length() < 10 {
+		if cells.Length() != 9 {
 			return
 		}
 		if !headerSeen {
@@ -54,35 +53,42 @@ func GetTeamMatches(id int) ([]TeamMatch, error) {
 		// Week number
 		cells = cells.Next()
 		weekCell := cells.First().Text()
-		weekCell = html.UnescapeString(weekCell)
+		weekCell = replaceNbsp(weekCell)
 		week, err := parseWeek(weekCell)
 		if err != nil {
+			fmt.Println(1)
 			return
 		}
 
 		// Match date
+		cells = cells.Next()
 		matchDateStr := cells.First().Text()
-		matchDate, err := time.ParseInLocation("01/02/2006", matchDateStr, time.Local)
+		matchDateStr = strings.TrimSpace(replaceNbsp(matchDateStr))
+		matchDate, err := time.ParseInLocation("01/02/06", matchDateStr, time.Local)
 
 		// Match day (of the week); skip because it can be derived
 		cells = cells.Next()
 
 		// Match notes (includes time, if scheduled)
+		cells = cells.Next()
 		matchNotes := cells.First().Text()
-		matchNotes = html.UnescapeString(matchNotes)
+		matchNotes = replaceNbsp(matchNotes)
 		matchDate, isScheduled, err := parseMatchTime(matchDate, matchNotes)
 		if err != nil {
+			fmt.Println(2)
 			return
 		}
 
 		// Opponent team name
 		cells = cells.Next()
 		opponentName := cells.First().Text()
+		opponentName = strings.TrimSpace(replaceNbsp(opponentName))
 
 		// Opponent team ID
 		u := cells.First().Get(0).FirstChild.Attr[0].Val
 		opponentID, err := parseIDFromUrl(u)
 		if err != nil {
+			fmt.Println(3)
 			return
 		}
 
@@ -111,8 +117,7 @@ func getTeamDoc(id int) (*goquery.Document, error) {
 
 func parseWeek(weekCell string) (int, error) {
 	weekCell = strings.TrimSpace(weekCell)
-	parts := strings.Split(weekCell, " ")
-	weekStr := parts[0]
+	weekStr, _, _ := strings.Cut(weekCell, " ")
 	week, err := strconv.Atoi(weekStr)
 	if err != nil {
 		return 0, fmt.Errorf("unable to parse week [%s] as integer: %w", weekStr, err)
