@@ -19,12 +19,12 @@ func TestGetOrganizationTeams(t *testing.T) {
 
 	firstTeam := orgTeams[0]
 	expectedTeam := OrganizationTeam{
-		Status:    "Register",
-		Name:      "ALMADEN SR 40AM3.5A-DT",
-		ID:        105115,
-		Area:      "Peninsula - Lower",
-		Captain:   "Caouette, Cory",
-		StartDate: time.Date(2025, 01, 06, 0, 0, 0, 0, time.Local),
+		Status:          "Register",
+		Name:            "ALMADEN SR 40AM3.5A-DT",
+		ID:              105115,
+		Area:            "Peninsula - Lower",
+		Captain:         "Caouette, Cory",
+		SeasonStartDate: time.Date(2025, 01, 06, 0, 0, 0, 0, time.Local),
 	}
 	require.Equal(t, expectedTeam, firstTeam)
 }

@@ -5,9 +5,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-	"net/http"
-	"net/url"
-	"strconv"
 	"time"
 )
 
@@ -16,12 +13,12 @@ type OrganizationDetails struct {
 }
 
 type OrganizationTeam struct {
-	Status    string
-	Name      string
-	ID        int
-	Area      string
-	Captain   string
-	StartDate time.Time
+	Status          string
+	Name            string
+	ID              int
+	Area            string
+	Captain         string
+	SeasonStartDate time.Time
 }
 
 const organizationURL = "/organization.asp?id=%d"
@@ -66,29 +63,32 @@ func GetOrganizationTeams(id int) ([]OrganizationTeam, error) {
 			return
 		}
 
+		// Status
 		status := cells.First().Text()
 
+		// Name
 		cells = cells.Next()
 		name := cells.First().Text()
 
+		// ID
 		u := cells.First().Get(0).FirstChild.Attr[0].Val
-		up, err := url.Parse(u)
-		if err != nil {
-			return
-		}
-		idStr := up.Query().Get("id")
-		id, err := strconv.Atoi(idStr)
+		id, err := parseIDFromUrl(u)
 		if err != nil {
 			return
 		}
 
+		// Area
 		cells = cells.Next()
 		area := cells.First().Text()
 
+		// Captain
 		cells = cells.Next()
 		captain := cells.First().Text()
 
+		// Send email link; skip because it's not useful
 		cells = cells.Next()
+
+		// Season start date
 		cells = cells.Next()
 		startDateStr := cells.First().Text()
 		startDate, err := time.ParseInLocation("01/02/2006", startDateStr, time.Local)
@@ -97,12 +97,12 @@ func GetOrganizationTeams(id int) ([]OrganizationTeam, error) {
 		}
 
 		orgTeam := OrganizationTeam{
-			Status:    status,
-			Name:      name,
-			ID:        id,
-			Area:      area,
-			Captain:   captain,
-			StartDate: startDate,
+			Status:          status,
+			Name:            name,
+			ID:              id,
+			Area:            area,
+			Captain:         captain,
+			SeasonStartDate: startDate,
 		}
 		orgTeams = append(orgTeams, orgTeam)
 	})
@@ -112,21 +112,5 @@ func GetOrganizationTeams(id int) ([]OrganizationTeam, error) {
 
 func getOrganizationDoc(id int) (*goquery.Document, error) {
 	u := baseUrl + fmt.Sprintf(organizationURL, id)
-
-	resp, err := http.Get(u)
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve organization details from url [%s]: %w", u, err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("unable to retrieve organization details from url [%s]; got status code [%d]", u, resp.StatusCode)
-	}
-
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse organization details: %w", err)
-	}
-
-	return doc, nil
+	return getDoc(u)
 }
