@@ -3,6 +3,7 @@ package pkg
 import (
 	"github.com/stretchr/testify/require"
 	"testing"
+	"time"
 )
 
 func TestGetOrganizationDetails(t *testing.T) {
@@ -17,9 +18,13 @@ func TestGetOrganizationTeams(t *testing.T) {
 	require.Len(t, orgTeams, 60)
 
 	firstTeam := orgTeams[0]
-	require.Equal(t, "Register", firstTeam.Status)
-	require.Equal(t, "ALMADEN SR 40AM3.5A-DT", firstTeam.Name)
-	require.Equal(t, "Peninsula - Lower", firstTeam.Area)
-	require.Equal(t, "Caouette, Cory", firstTeam.Captain)
-	require.Equal(t, "01/06/2025", firstTeam.StartDate.Format("01/02/2006"))
+	expectedTeam := OrganizationTeam{
+		Status:    "Register",
+		Name:      "ALMADEN SR 40AM3.5A-DT",
+		ID:        105115,
+		Area:      "Peninsula - Lower",
+		Captain:   "Caouette, Cory",
+		StartDate: time.Date(2025, 01, 06, 0, 0, 0, 0, time.Local),
+	}
+	require.Equal(t, expectedTeam, firstTeam)
 }
